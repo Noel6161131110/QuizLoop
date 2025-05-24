@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router";
 import { api } from "~/api/axios";
 import { Pencil } from "lucide-react";
@@ -14,10 +14,13 @@ interface MCQ {
 interface Segment {
   range: string;
   mcqs: MCQ[];
+  startTime: number;
+  endTime: number;
 }
 
 const WatchPage = () => {
   const { fileId } = useParams<{ fileId: string }>();
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [segments, setSegments] = useState<Segment[]>([]);
   const [expandedSections, setExpandedSections] = useState<number[]>([]);
   const [revealedAnswers, setRevealedAnswers] = useState<{ [key: string]: string }>({});
@@ -27,6 +30,8 @@ const WatchPage = () => {
     options: [],
     answer: "",
   });
+  const [currentTime, setCurrentTime] = useState(0);
+  const [activeSegmentIndex, setActiveSegmentIndex] = useState<number | null>(null);
 
   const [fileDetails, setFileDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +64,6 @@ const WatchPage = () => {
   const handleExportClick = async () => {
     const rawMCQs = await fetchMCQsforExport();
 
-    // Remove _id from each item
     const cleanedMCQs = rawMCQs.map(({ _id, ...rest }) => rest);
 
     const blob = new Blob([JSON.stringify(cleanedMCQs, null, 2)], {
@@ -86,7 +90,12 @@ const WatchPage = () => {
 
         let segment = grouped.find((s) => s.range === range);
         if (!segment) {
-          segment = { range, mcqs: [] };
+          segment = { 
+            range, 
+            mcqs: [], 
+            startTime: item.start * 60,
+            endTime: item.end * 60
+          };
           grouped.push(segment);
         }
 
@@ -110,6 +119,25 @@ const WatchPage = () => {
     }
   }, [fileId]);
 
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const time = videoRef.current.currentTime;
+      setCurrentTime(time);
+      
+      const activeIndex = segments.findIndex(segment => 
+        time >= segment.startTime && time <= segment.endTime
+      );
+      
+      setActiveSegmentIndex(activeIndex !== -1 ? activeIndex : null);
+    }
+  };
+
+  const jumpToTime = (startTime: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = startTime;
+    }
+  };
+
   const toggleSection = (index: number) => {
     setExpandedSections((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
@@ -124,7 +152,6 @@ const WatchPage = () => {
 
   return (
     <div className="flex w-full min-h-screen bg-white text-gray-900">
-      {/* Left: Video */}
       <div className="w-2/3 p-6 border-r border-gray-200">
         {loading ? (
           <p>Loading video...</p>
@@ -132,8 +159,10 @@ const WatchPage = () => {
           <>
             <div className="rounded-xl overflow-hidden shadow-md mb-4">
               <video
+                ref={videoRef}
                 controls
                 autoPlay
+                onTimeUpdate={handleTimeUpdate}
                 className="w-full aspect-video rounded-xl"
                 style={{ backgroundColor: "#000" }}
               >
@@ -163,149 +192,181 @@ const WatchPage = () => {
               >
                 Export JSON
               </span>
-
             </div>
           </>
         ) : (
           <p>File not found.</p>
         )}
       </div>
-      {/* Right: MCQs */}
       <div className="w-1/3 p-6 overflow-y-auto">
         <h3 className="text-xl font-bold mb-4">MCQs</h3>
-        {segments.map((segment, segmentIndex) => (
-          <div key={segmentIndex} className="mb-4 border border-gray-200 rounded-md shadow-sm">
-            <button
-              className="flex justify-between w-full px-4 py-3 text-left font-medium text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-t-md"
-              onClick={() => toggleSection(segmentIndex)}
+        {segments.map((segment, segmentIndex) => {
+          const isActive = activeSegmentIndex === segmentIndex;
+          const isExpanded = expandedSections.includes(segmentIndex);
+          
+          return (
+            <div 
+              key={segmentIndex} 
+              className={`mb-4 border rounded-md shadow-sm transition-all duration-300 ${
+                isActive 
+                  ? 'border-blue-500 bg-blue-50 shadow-lg' 
+                  : 'border-gray-200'
+              }`}
             >
-              <span>{segment.range}</span>
-              <span>{expandedSections.includes(segmentIndex) ? "▲" : "▼"}</span>
-            </button>
+              <button
+                className={`flex justify-between items-center w-full px-4 py-3 text-left font-medium rounded-t-md transition-colors ${
+                  isActive
+                    ? 'text-blue-800 bg-blue-100 hover:bg-blue-200'
+                    : 'text-gray-800 bg-gray-100 hover:bg-gray-200'
+                }`}
+                onClick={() => toggleSection(segmentIndex)}
+              >
+                <div className="flex items-center gap-2">
+                  <span>{segment.range}</span>
+                  {isActive && (
+                    <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">
+                      ACTIVE
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      jumpToTime(segment.startTime);
+                    }}
+                    className="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700"
+                  >
+                    Jump
+                  </button>
+                  <span>{isExpanded ? "▲" : "▼"}</span>
+                </div>
+              </button>
 
-            {expandedSections.includes(segmentIndex) && (
-              <div className="bg-white px-4 py-3 space-y-4">
-                {segment.mcqs.map((mcq, mcqIndex) => {
-                  const key = `${segmentIndex}-${mcqIndex}`;
-                  const revealed = revealedAnswers[key];
+              {isExpanded && (
+                <div className={`px-4 py-3 space-y-4 ${isActive ? 'bg-blue-25' : 'bg-white'}`}>
+                  {segment.mcqs.map((mcq, mcqIndex) => {
+                    const key = `${segmentIndex}-${mcqIndex}`;
+                    const revealed = revealedAnswers[key];
 
-                  return (
-                    <div key={mcqIndex} className="border border-gray-200 p-3 rounded-md">
-                      {editingKey === mcq._id ? (
-                        <>
-                          <label className="block text-sm font-medium mb-1">Question</label>
-                          <input
-                            type="text"
-                            value={editForm.question}
-                            onChange={(e) =>
-                              setEditForm((prev) => ({ ...prev, question: e.target.value }))
-                            }
-                            className="w-full p-2 border rounded mb-2"
-                          />
-
-                          <label className="block text-sm font-medium mb-1">Options</label>
-                          {editForm.options.map((option, i) => (
+                    return (
+                      <div key={mcqIndex} className="border border-gray-200 p-3 rounded-md bg-white">
+                        {editingKey === mcq._id ? (
+                          <>
+                            <label className="block text-sm font-medium mb-1">Question</label>
                             <input
-                              key={i}
                               type="text"
-                              value={option}
-                              onChange={(e) => {
-                                const newOptions = [...editForm.options];
-                                newOptions[i] = e.target.value;
-                                setEditForm((prev) => ({ ...prev, options: newOptions }));
-                              }}
+                              value={editForm.question}
+                              onChange={(e) =>
+                                setEditForm((prev) => ({ ...prev, question: e.target.value }))
+                              }
                               className="w-full p-2 border rounded mb-2"
                             />
-                          ))}
 
-                          <label className="block text-sm font-medium mb-1 text-green-600">Answer</label>
-                          <input
-                            type="text"
-                            value={editForm.answer}
-                            onChange={(e) =>
-                              setEditForm((prev) => ({ ...prev, answer: e.target.value }))
-                            }
-                            className="w-full p-2 border-2 border-green-500 rounded mb-2"
-                          />
-
-                          <div className="flex gap-2">
-                            <button
-                              className="bg-green-600 text-white px-3 py-1 rounded"
-                              onClick={async () => {
-                                if (!editForm.options.includes(editForm.answer)) {
-                                  alert("Answer must be one of the options.");
-                                  return;
-                                }
-
-                                try {
-                                  await api.put("/api/mcqs", {
-                                    _id: mcq._id,
-                                    question: editForm.question,
-                                    options: editForm.options,
-                                    answer: editForm.answer,
-                                  });
-                                  setEditingKey(null);
-                                  fetchMCQs();
-                                } catch (err) {
-                                  console.error("Failed to update MCQ:", err);
-                                }
-                              }}
-                            >
-                              Save
-                            </button>
-
-                            <button
-                              className="bg-gray-400 text-white px-3 py-1 rounded"
-                              onClick={() => setEditingKey(null)}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex justify-between items-start">
-                            <p className="font-semibold">{mcq.question}</p>
-                            <Pencil
-                              className="w-4 h-4 text-blue-600 cursor-pointer"
-                              onClick={() => {
-                                setEditingKey(mcq._id);
-                                setEditForm({
-                                  question: mcq.question,
-                                  options: [...mcq.options],
-                                  answer: mcq.answer,
-                                });
-                              }}
-                            />
-                          </div>
-                          <ul className="list-disc list-inside space-y-1 mt-2 text-gray-700">
-                            {mcq.options.map((option, optionIndex) => (
-                              <li
-                                key={optionIndex}
-                                className={`pl-1 ${revealed === option ? "text-green-600 font-bold" : ""
-                                  }`}
-                              >
-                                {option}
-                              </li>
+                            <label className="block text-sm font-medium mb-1">Options</label>
+                            {editForm.options.map((option, i) => (
+                              <input
+                                key={i}
+                                type="text"
+                                value={option}
+                                onChange={(e) => {
+                                  const newOptions = [...editForm.options];
+                                  newOptions[i] = e.target.value;
+                                  setEditForm((prev) => ({ ...prev, options: newOptions }));
+                                }}
+                                className="w-full p-2 border rounded mb-2"
+                              />
                             ))}
-                          </ul>
-                          {!revealed && (
-                            <button
-                              onClick={() => revealAnswer(segmentIndex, mcqIndex)}
-                              className="mt-3 px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md"
-                            >
-                              Reveal Answer
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+
+                            <label className="block text-sm font-medium mb-1 text-green-600">Answer</label>
+                            <input
+                              type="text"
+                              value={editForm.answer}
+                              onChange={(e) =>
+                                setEditForm((prev) => ({ ...prev, answer: e.target.value }))
+                              }
+                              className="w-full p-2 border-2 border-green-500 rounded mb-2"
+                            />
+
+                            <div className="flex gap-2">
+                              <button
+                                className="bg-green-600 text-white px-3 py-1 rounded"
+                                onClick={async () => {
+                                  if (!editForm.options.includes(editForm.answer)) {
+                                    alert("Answer must be one of the options.");
+                                    return;
+                                  }
+
+                                  try {
+                                    await api.put("/api/mcqs", {
+                                      _id: mcq._id,
+                                      question: editForm.question,
+                                      options: editForm.options,
+                                      answer: editForm.answer,
+                                    });
+                                    setEditingKey(null);
+                                    fetchMCQs();
+                                  } catch (err) {
+                                    console.error("Failed to update MCQ:", err);
+                                  }
+                                }}
+                              >
+                                Save
+                              </button>
+
+                              <button
+                                className="bg-gray-400 text-white px-3 py-1 rounded"
+                                onClick={() => setEditingKey(null)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex justify-between items-start">
+                              <p className="font-semibold">{mcq.question}</p>
+                              <Pencil
+                                className="w-4 h-4 text-blue-600 cursor-pointer"
+                                onClick={() => {
+                                  setEditingKey(mcq._id);
+                                  setEditForm({
+                                    question: mcq.question,
+                                    options: [...mcq.options],
+                                    answer: mcq.answer,
+                                  });
+                                }}
+                              />
+                            </div>
+                            <ul className="list-disc list-inside space-y-1 mt-2 text-gray-700">
+                              {mcq.options.map((option, optionIndex) => (
+                                <li
+                                  key={optionIndex}
+                                  className={`pl-1 ${revealed === option ? "text-green-600 font-bold" : ""
+                                    }`}
+                                >
+                                  {option}
+                                </li>
+                              ))}
+                            </ul>
+                            {!revealed && (
+                              <button
+                                onClick={() => revealAnswer(segmentIndex, mcqIndex)}
+                                className="mt-3 px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+                              >
+                                Reveal Answer
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

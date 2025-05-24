@@ -1,5 +1,6 @@
 import express from 'express';
 import FileDetails from '../models/FileDetails.ts';
+import MCQs from '../models/MCQs.ts';
 import mongoose from 'mongoose';
 import fs from 'fs-extra';
 import { Worker } from 'worker_threads';
@@ -101,13 +102,12 @@ const FileController = {
       const fileName = req.file.originalname.replace(/\s+/g, '');
 
       if (chunkNumber === totalChunks - 1) {
-        await mergeChunks(fileName, totalChunks); // ✅ merge all chunks before saving metadata
+        await mergeChunks(fileName, totalChunks);
 
 
         const mergedFilePath = path.join('uploads/videos/', fileName);
 
 
-        // ✅ Create DB entry
         const newFile = new FileDetails({
           fileId: new mongoose.Types.ObjectId(),
           title: req.body.title,
@@ -143,14 +143,14 @@ const FileController = {
         console.log(videoPath)
 
         const worker = new Worker(
-          new URL('../workers/processVideo.ts', import.meta.url), // ✅ relative URL
+          new URL('../workers/processVideo.ts', import.meta.url),
           {
             workerData: {
               videoPath,
               fileId: savedFile._id.toString(),
               noOfMCQs: savedFile.noOfMCQs?.toString()
             },
-            execArgv: ['--loader', 'ts-node/esm'], // ✅ run TS directly
+            execArgv: ['--loader', 'ts-node/esm'],
           }
         );
 
@@ -238,13 +238,12 @@ const FileController = {
 
   getAllVideos: async (req: express.Request, res: express.Response): Promise<void> => {
     try {
-      // Fetch all videos
+
       const videos = await FileDetails.find({ fileType: 'video' });
 
       const response = await Promise.all(videos.map(async (video) => {
         const thumbnailId = video.metadata?.thumbnailFileId;
 
-        // Fetch corresponding thumbnail file
         let thumbnail = null;
         if (thumbnailId) {
           thumbnail = await FileDetails.findOne({
@@ -290,7 +289,6 @@ const FileController = {
 
       const uploadsDir = path.resolve(__dirname, '../../uploads');
 
-      // Delete thumbnail if exists
       const thumbnailId = videoFile.metadata?.thumbnailFileId;
       if (thumbnailId) {
         const thumbnailFile = await FileDetails.findById(thumbnailId);
@@ -306,7 +304,15 @@ const FileController = {
         }
       }
 
-      // Delete video file
+      const deleteResult = await MCQs.deleteMany({ videoId: fileId });
+
+      if (deleteResult.deletedCount && deleteResult.deletedCount > 0) {
+        console.log(`Deleted ${deleteResult.deletedCount} MCQs for videoId: ${fileId}`);
+      } else {
+        console.log(`No MCQs found for videoId: ${fileId} to delete.`);
+      }
+
+      
       const videoFullPath = path.join(uploadsDir, videoFile.filePath);
       try {
         await fs.remove(videoFullPath);
@@ -384,29 +390,29 @@ const FileController = {
   },
 
   getFileById: async (req: express.Request, res: express.Response): Promise<void> => {
-  try {
-    const { fileId } = req.params;
+    try {
+      const { fileId } = req.params;
 
-    if (!fileId) {
-      res.status(400).json({ message: 'fileId is required' });
-      return;
+      if (!fileId) {
+        res.status(400).json({ message: 'fileId is required' });
+        return;
+      }
+
+      const videoFile = await FileDetails.findById(fileId);
+
+      if (!videoFile) {
+        res.status(404).json({ message: 'Video file not found' });
+        return;
+      }
+
+      res.status(200).json({
+        message: 'File details fetched successfully',
+        data: videoFile,
+      });
+    } catch (error) {
+      console.error("Error fetching file:", error);
+      res.status(500).json({ message: 'Internal server error' });
     }
-
-    const videoFile = await FileDetails.findById(fileId);
-
-    if (!videoFile) {
-      res.status(404).json({ message: 'Video file not found' });
-      return;
-    }
-
-    res.status(200).json({
-      message: 'File details fetched successfully',
-      data: videoFile,
-    });
-  } catch (error) {
-    console.error("Error fetching file:", error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
   }
 };
 

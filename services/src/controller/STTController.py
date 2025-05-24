@@ -1,7 +1,7 @@
 import whisper
 import torch, os
-from fastapi import UploadFile, File, HTTPException, Depends, Request
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import UploadFile, File, HTTPException
+from fastapi.responses import JSONResponse
 import aiofiles
 
 def transcribeAudio(audio_file):

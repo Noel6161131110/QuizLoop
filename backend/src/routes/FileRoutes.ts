@@ -140,6 +140,123 @@ router.post('/thumbnail', uploadThumbnail.single('thumbnail'), FileController.up
 
 router.get('/thumbnails/:filename', FileController.getThumbnailImage);
 
+/**
+ * @swagger
+ * /api/files/videos:
+ *   get:
+ *     summary: Retrieve all uploaded videos metadata
+ *     responses:
+ *       200:
+ *         description: A list of videos metadata
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Video ID
+ *                   filename:
+ *                     type: string
+ *                   originalname:
+ *                     type: string
+ *                   size:
+ *                     type: integer
+ *                   uploadDate:
+ *                     type: string
+ *                     format: date-time
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/files/{fileId}:
+ *   get:
+ *     summary: Get video metadata by file ID
+ *     parameters:
+ *       - in: path
+ *         name: fileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the video file
+ *     responses:
+ *       200:
+ *         description: Video metadata object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 filename:
+ *                   type: string
+ *                 originalname:
+ *                   type: string
+ *                 size:
+ *                   type: integer
+ *                 uploadDate:
+ *                   type: string
+ *                   format: date-time
+ *       404:
+ *         description: Video not found
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/files:
+ *   delete:
+ *     summary: Delete a video file by file ID
+ *     parameters:
+ *       - in: query
+ *         name: fileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the video file to delete
+ *     responses:
+ *       200:
+ *         description: Video deleted successfully
+ *       404:
+ *         description: Video not found
+ *       400:
+ *         description: Missing or invalid fileId parameter
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/files/stream/{fileId}:
+ *   get:
+ *     summary: Stream video file by file ID
+ *     parameters:
+ *       - in: path
+ *         name: fileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the video file to stream
+ *     responses:
+ *       200:
+ *         description: Video stream
+ *         content:
+ *           video/mp4:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: Video not found
+ *       500:
+ *         description: Internal server error
+ */
+
 router.get('/videos', FileController.getAllVideos);
 
 router.get('/:fileId', FileController.getFileById);

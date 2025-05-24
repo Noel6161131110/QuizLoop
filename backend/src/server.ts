@@ -7,7 +7,7 @@ import FileRouter from './routes/FileRoutes.ts';
 import MCQRouter from './routes/MCQRoutes.ts';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.ts';
-import path, { dirname }  from 'path';
+import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import http from 'http';
 import { setupNotificationServer } from './controllers/NotificationController.ts';
@@ -20,7 +20,7 @@ const app = express();
 const PORT = process.env.PORT;
 
 app.use(cors({
-  origin: "*", 
+  origin: "*",
   methods: ["*"],
   credentials: true
 }));

@@ -11,7 +11,7 @@ import { Toaster } from "~/components/ui/sonner"
 import { useState, useEffect } from "react";
 import UploadCard from "~/components/upload-card";
 import { cn } from "~/lib/utils";
-import {api, API_URL} from "~/api/axios";
+import { api, API_URL } from "~/api/axios";
 import CircularProgressDemo from "~/components/customized/progress/progress-07";
 import { Link } from "react-router";
 import UploadGridCard from "~/components/upload-grid-card";
@@ -28,7 +28,7 @@ type Video = {
 
 
 const Dashboard = () => {
-const [progressMCQ, setProgressMCQ] = useState([100]);
+  const [progressMCQ, setProgressMCQ] = useState([100]);
   const [showUpload, setShowUpload] = useState(false);
   const [videos, setVideos] = useState<Video[]>([]);
   const [showPreviewSize, setShowPreviewSize] = useState(false);
@@ -60,7 +60,7 @@ const [progressMCQ, setProgressMCQ] = useState([100]);
 
   return (
     <main>
-      
+
       <div className="max-h-screen flex-1 space-y-4 overflow-y-auto p-4 pt-6 md:p-8">
         <div className="flex items-center justify-center space-y-2">
           <div className="w-full max-w-3xl px-4">
@@ -141,10 +141,10 @@ const [progressMCQ, setProgressMCQ] = useState([100]);
                   : "max-w-xs sm:max-w-lg w-full rounded-lg"
               )}
             >
-              <UploadCard 
-                setShowUpload={setShowUpload} 
-                setShowPreviewSize={setShowPreviewSize} 
-                showPreviewSize={showPreviewSize} 
+              <UploadCard
+                setShowUpload={setShowUpload}
+                setShowPreviewSize={setShowPreviewSize}
+                showPreviewSize={showPreviewSize}
                 onUploadSuccess={fetchVideos}
               />
             </div>
@@ -152,7 +152,7 @@ const [progressMCQ, setProgressMCQ] = useState([100]);
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 lg:px-6">
-       
+
           <div className="w-full flex flex-col">
             <UploadGridCard onClick={() => setShowUpload(true)} />
             <div className="mt-2 ml-2 text-base font-semibold text-left invisible select-none">
@@ -168,44 +168,44 @@ const [progressMCQ, setProgressMCQ] = useState([100]);
 
             return (
               <div key={i} className="w-full flex flex-col">
-                
-                  <Card className="aspect-[4/3] w-full relative overflow-hidden rounded-md p-0 cursor-pointer">
-                    <img
-                      src={`http://localhost:3000${video.thumbnailUrl}`}
-                      alt={video.videoFileName}
-                      crossOrigin="anonymous"
-                      className="absolute top-0 left-0 w-full h-full object-cover"
-                    />
 
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/70 to-transparent z-10" />
+                <Card className="aspect-[4/3] w-full relative overflow-hidden rounded-md p-0 cursor-pointer">
+                  <img
+                    src={`http://localhost:3000${video.thumbnailUrl}`}
+                    alt={video.videoFileName}
+                    crossOrigin="anonymous"
+                    className="absolute top-0 left-0 w-full h-full object-cover"
+                  />
 
-                    <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full z-20">
-                      {durationFormatted}
+                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/70 to-transparent z-10" />
+
+                  <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full z-20">
+                    {durationFormatted}
+                  </div>
+
+                  {progressMCQ[0] < 100 && (
+                    <div className="absolute bottom-2 right-2 z-20">
+                      <CircularProgressDemo progress={progressMCQ} />
                     </div>
+                  )}
 
-                    {progressMCQ[0] < 100 && (
-                      <div className="absolute bottom-2 right-2 z-20">
-                        <CircularProgressDemo progress={progressMCQ} />
-                      </div>
-                    )}
-
-                    <div
-                      className="absolute top-2 right-2 z-20 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-md
+                  <div
+                    className="absolute top-2 right-2 z-20 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-md
                                 hover:bg-red-100 hover:scale-105 transition-all duration-200 ease-in-out cursor-pointer"
-                      onClick={() => DeleteVideo(video.fileId)}
-                    >
-                      <TrashIcon className="text-gray-700 hover:text-red-600 transition-colors duration-200" />
-                    </div>
-                    <Link to={`/watch/${video.fileId}`}>
+                    onClick={() => DeleteVideo(video.fileId)}
+                  >
+                    <TrashIcon className="text-gray-700 hover:text-red-600 transition-colors duration-200" />
+                  </div>
+                  <Link to={`/watch/${video.fileId}`}>
                     <div
                       className="absolute bottom-2 left-2 z-20 bg-white/80 backdrop-blur-sm p-4 rounded-full shadow-md
                                 hover:bg-gray-100 hover:scale-105 transition-all duration-200 ease-in-out cursor-pointer"
                     >
                       <PlayCircleIcon className="text-gray-700 hover:text-black transition-colors duration-200" />
                     </div>
-                    </Link>
-                  </Card>
-            
+                  </Link>
+                </Card>
+
 
                 <div className="mt-2 ml-2 text-base font-semibold text-left truncate">
                   {video.videoFileName}
@@ -213,14 +213,8 @@ const [progressMCQ, setProgressMCQ] = useState([100]);
               </div>
             );
           })}
-
-
         </div>
-
-        
       </div>
-
-
     </main>
   );
 };

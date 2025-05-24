@@ -18,12 +18,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       const data = JSON.parse(event.data);
       console.log("Received from WebSocket:", data);
 
-      
+
       toast("New Notifcation", {
         description: data.message,
 
       });
-      
+
     };
 
     socket.onerror = (error) => {

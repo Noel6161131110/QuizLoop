@@ -13,7 +13,7 @@ const UploadGridCard: React.FC<UploadCardProps> = ({ onClick }) => {
                  group"
       style={{ backgroundClip: "padding-box" }}
     >
-      {/* Rainbow border on hover */}
+
       <div
         className="absolute inset-0 rounded-md
                    bg-[length:400%_400%] bg-rainbow-gradient
@@ -24,7 +24,7 @@ const UploadGridCard: React.FC<UploadCardProps> = ({ onClick }) => {
         style={{ zIndex: 0 }}
       ></div>
 
-      {/* Card inside with white background */}
+
       <Card
         onClick={onClick}
         className="relative z-10 aspect-[4/3] flex flex-col justify-center items-center
