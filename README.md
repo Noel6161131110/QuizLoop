@@ -51,6 +51,26 @@ This project is a full-stack web application built with the MERN stack (MongoDB,
 
 ---
 
+## Application Overview
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Noel6161131110/QuizLoop/main/assets/1.png" alt="Dashboard/Home" width="45%" />
+  <img src="https://raw.githubusercontent.com/Noel6161131110/quizloop/main/assets/2.png" alt="Upload Video" width="45%" />
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Noel6161131110/quizloop/main/assets/3.png" alt="Transcription Process" width="45%" />
+  <img src="https://raw.githubusercontent.com/Noel6161131110/quizloop/main/assets/4.png" alt="Video Streaming/MCQs" width="45%" />
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Noel6161131110/quizloop/main/assets/5.png" alt="MCQ Overview" width="45%" />
+  <img src="https://raw.githubusercontent.com/Noel6161131110/quizloop/main/assets/6.png" alt="MCQ Overview 2" width="45%" />
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Noel6161131110/quizloop/main/assets/7.png" alt="MCQ Edit Option" width="45%" />
+  <img src="https://raw.githubusercontent.com/Noel6161131110/quizloop/main/assets/8.png" alt="MCQ Reveal Answer" width="45%" />
+</p>
+
+
 ## Application Flow
 
 1. User uploads a lecture video via the React frontend.
@@ -73,4 +93,4 @@ This project is a full-stack web application built with the MERN stack (MongoDB,
 - RabbitMQ (for messaging and background task processing)
 - FFmpeg (for video processing, if needed)
 
-<p align="center"><em>With ❤️ open-source.</em></p>
+<p align="center"><em>With ❤️ Open-Source.</em></p>
