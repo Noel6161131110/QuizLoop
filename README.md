@@ -1,4 +1,4 @@
-# Lecture Video Transcriber & MCQ Generator (QuizLoop)
+# QuizLoop - Lecture Video Transcriber & MCQ Generator
 
 ## Overview
 
@@ -47,6 +47,7 @@ This project is a full-stack web application built with the MERN stack (MongoDB,
 | Database       | MongoDB (with official Node.js driver)                              |
 | AI/ML Services | Whisper (local transcription), LLM via Ollama, FastAPI for REST API |
 | Storage        | Local file system (for videos)                                      |
+| Messaging      | RabbitMQ                                                            |
 
 ---
 
@@ -69,4 +70,7 @@ This project is a full-stack web application built with the MERN stack (MongoDB,
 - Node.js (v16+ recommended)
 - MongoDB (running locally or remotely)
 - Python 3.8+ with required AI/ML dependencies installed (Whisper, LLM models, Flask/FastAPI)
+- RabbitMQ (for messaging and background task processing)
 - FFmpeg (for video processing, if needed)
+
+<p align="center"><em>With ❤️ open-source.</em></p>
